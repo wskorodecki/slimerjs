@@ -158,18 +158,25 @@ function _create(parentWebpageInfo) {
                      +" ow:"+msg.outerWindowID
                      +" is:"+webpageUtils.isOurWindow(browser, msg.outerWindowID)+"\n")*/
                 let frameUrl = webpageUtils.isOurWindow(browser, msg.outerWindowID);
-                if (msg instanceof Ci.nsIScriptError
-                    && !(msg.flags & Ci.nsIScriptError.warningFlag)
-                    && msg.outerWindowID
-                    && frameUrl
-                    && msg.category == "content javascript"
-                    ) {
-                    let [m, stack] = getTraceException(msg, null);
-                    webpage.onError(msg.errorMessage, stack);
-                }
+                let [m, stack] = getTraceException(msg, null);
+                webpage.onError(
+                    msg.errorMessage,
+                    stack,
+
+                    // The application may decide if it wants to display the warning / error message by checking its
+                    // category and flags. For more info please read:
+                    // https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XPCOM/Reference/Interface/nsIScriptError#Categories
+
+                    msg.category,
+                    msg.flags
+                );
             }
             catch(e) {
                 //dump("**************** jsErrorListener err:"+e+"\n")
+
+                webpage.onError(
+                    'An error occurred in jsErrorListener: ' + String(('object' === typeof e) ? e.message : e)
+                );
             }
         },
         QueryInterface: function (iid) {
