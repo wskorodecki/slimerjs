@@ -30,6 +30,8 @@ const systemPrincipal = Cc['@mozilla.org/systemprincipal;1']
 const netLog = require('net-log');
 netLog.startTracer();
 
+var lastSetUserAgent = null;
+
 /**
  * create a webpage object
  * @module webpage
@@ -191,8 +193,15 @@ function _create(parentWebpageInfo) {
         return {
             _onRequest: function(request) {
                 request = request.QueryInterface(Ci.nsIHttpChannel);
-                if (webpage.settings.userAgent)
-                    request.setRequestHeader("User-Agent", webpage.settings.userAgent, false);
+
+                if (webpage.settings.userAgent && (webpage.settings.userAgent !== lastSetUserAgent)) {
+                    // Set User-Agent via preferences instead of calling request.setRequestHeader() method to
+                    // properly set User-Agent also for CONNECT requests.
+
+                    Services.prefs.setCharPref('general.useragent.override', webpage.settings.userAgent);
+                    lastSetUserAgent = webpage.settings.userAgent;
+                }
+
                 let h;
                 if (firstRequestHeadersUsed) {
                     h = webpage.customHeaders;
