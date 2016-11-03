@@ -731,14 +731,15 @@ function _create(parentWebpageInfo) {
 
             let loadUri = function() {
                 netLog.registerBrowser(browser, options);
+
                 try {
                     webpageUtils.browserLoadURI(browser, url, httpConf);
                 }
                 catch(e) {
-                    // we simulate PhantomJS behavior on url errors
-                    options.onLoadStarted('');
-                    options.onURLChanged('about:blank');
                     if (e.message == 'NS_ERROR_UNKNOWN_PROTOCOL') {
+                        // we simulate PhantomJS behavior on url errors
+                        options.onLoadStarted('');
+                        options.onURLChanged('about:blank');
                         options.onRequest({
                             id: 1,
                             method: httpConf.operation,
@@ -771,8 +772,16 @@ function _create(parentWebpageInfo) {
                             isFileDownloading : false,
                             body: ""
                         });
+                    } else {
+                        let isExceptionObject = ('object' === typeof e);
+
+                        webpage.onError(
+                            String(isExceptionObject ? e.message : e),
+                            String(isExceptionObject ? e.stack : null)
+                        );
                     }
-                    options.onLoadFinished(url, "fail");
+
+                    options.onLoadFinished(url, 'fail');
                 }
             }
             
