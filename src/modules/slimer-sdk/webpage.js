@@ -168,7 +168,11 @@ function _create(parentWebpageInfo) {
                     // https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XPCOM/Reference/Interface/nsIScriptError#Categories
 
                     msg.category,
-                    msg.flags
+                    msg.flags,
+
+                    msg.sourceName || null,
+                    msg.lineNumber || null,
+                    msg.columnNumber || null
                 );
             }
             catch(e) {
